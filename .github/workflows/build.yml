@@ -1,0 +1,101 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+
+      - name: Build
+        working-directory: f4se-plugin
+        run: |
+          xmake f -y -p windows -a x64 -m releasedbg
+          xmake build -y -vD NAF
+
+      - name: Read version from DLL
+        id: version
+        shell: pwsh
+        run: |
+          $dll = "f4se-plugin\build\windows\x64\releasedbg\NAF.dll"
+          $fileVersion = (Get-Item $dll).VersionInfo.FileVersion
+          Write-Host "NAF.dll FileVersion: $fileVersion"
+
+          # X.Y.Z.W -> X.Y.Z
+          if ($fileVersion -notmatch '^(\d+\.\d+\.\d+)') {
+              Throw "Could not read a version from $dll (FileVersion='$fileVersion')"
+          }
+          $version = $Matches[1]
+          $sha = '${{ github.sha }}'.Substring(0, 8)
+
+          # Only create GitHub releases on push to master
+          $createRelease = ('${{ github.event_name }}' -eq 'push' -and '${{ github.ref }}' -eq 'refs/heads/master')
+
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "tag=v$version" >> $env:GITHUB_OUTPUT
+          "sha=$sha" >> $env:GITHUB_OUTPUT
+          "createRelease=$($createRelease.ToString().ToLower())" >> $env:GITHUB_OUTPUT
+
+      - name: Package artifacts
+        id: package
+        shell: pwsh
+        run: |
+          $artifactName = if ('${{ steps.version.outputs.createRelease }}' -eq 'true') {
+              "NAF-${{ steps.version.outputs.version }}"
+          } else {
+              "NAF-${{ steps.version.outputs.sha }}"
+          }
+          $artifactFile = "$artifactName.7z"
+
+          # F4SE\Plugins skeleton files (license/copyright folder) plus the built DLL and PDB
+          New-Item -Path "artifacts\F4SE\Plugins" -ItemType Directory -Force | Out-Null
+          Copy-Item "ck\project_files\F4SE\Plugins\*" -Destination "artifacts\F4SE\Plugins" -Recurse -Force
+
+          Copy-Item "f4se-plugin\build\windows\x64\releasedbg\NAF.dll" -Destination "artifacts\F4SE\Plugins\" -Force
+          Copy-Item "f4se-plugin\build\windows\x64\releasedbg\NAF.pdb" -Destination "artifacts\F4SE\Plugins\" -Force
+
+          Push-Location "artifacts"
+          7z a -t7z -mx=9 "..\$artifactFile" .
+          Pop-Location
+
+          "artifactName=$artifactName" >> $env:GITHUB_OUTPUT
+          "artifactFile=$artifactFile" >> $env:GITHUB_OUTPUT
+
+      - name: Upload artifact (non-release builds)
+        if: steps.version.outputs.createRelease != 'true'
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ steps.package.outputs.artifactName }}
+          path: ${{ steps.package.outputs.artifactFile }}
+
+      - name: Create pre-release
+        if: steps.version.outputs.createRelease == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          generate_release_notes: true
+          prerelease: true
+          fail_on_unmatched_files: true
+          files: ${{ steps.package.outputs.artifactFile }}

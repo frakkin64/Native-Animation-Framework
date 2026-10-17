@@ -1,5 +1,4 @@
 build/
-.github/
 .vs/
 /ck/package/
 *.pex
