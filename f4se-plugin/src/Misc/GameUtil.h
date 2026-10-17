@@ -178,7 +178,11 @@ public:
 
 	// Will always return false if the actor is not valid.
 	static bool ActorIsAlive(RE::Actor* targetActor, bool require3d = true) {
-		return !targetActor ? false : ActorIsEnabled(targetActor, require3d) && targetActor->lifeState == 0;
+		if (!targetActor || !ActorIsEnabled(targetActor, require3d)) {
+			return false;
+		}
+		const auto ls = targetActor->lifeState;
+		return ls == std::to_underlying(RE::ACTOR_LIFE_STATE::kAlive) || ls == std::to_underlying(RE::ACTOR_LIFE_STATE::kRestrained);
 	}
 
 	static bool RefIsDisabled(RE::TESObjectREFR* targetRef) {
