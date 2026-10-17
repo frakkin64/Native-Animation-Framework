@@ -3,7 +3,7 @@ includes("lib/commonlibf4")
 
 -- set project constants
 set_project("NAF")
-set_version("1.0.14")
+set_version("1.0.15")
 set_license("GPL-3.0")
 set_languages("c++23")
 set_warnings("allextra")
