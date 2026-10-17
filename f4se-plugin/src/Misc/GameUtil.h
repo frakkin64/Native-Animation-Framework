@@ -369,6 +369,13 @@ public:
 
 		if (camera && camera->currentState && (flyCam != (camera->currentState->id.get() == RE::CameraState::kFree))) {
 			camera->ToggleFreeCameraMode(false);
+			if (flyCam) {
+				// FreeCameraState::Begin force-enables Movement|Looking so the free cam keeps WASD/mouse while the scene disables
+				// player input. On 1.10.163 that forced mask reads 0 after Begin, so set it again (same call Begin makes).
+				using func_t = void (*)(RE::BSInputEnableManager*, std::uint32_t, bool);
+				static REL::Relocation<func_t> forceUserEventEnabled{ REL::VariantID{ 230159, 2268250 } };
+				forceUserEventEnabled(RE::BSInputEnableManager::GetSingleton(), 3, true);
+			}
 		}
 	}
 
