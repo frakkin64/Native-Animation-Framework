@@ -25,7 +25,7 @@ namespace Scene
 
 		virtual RE::BSEventNotifyControl ProcessEvent(const RE::TESHitEvent& a_event, RE::BSTEventSource<RE::TESHitEvent>*) override
 		{
-			VisitAllScenesWithRef(a_event.victim, [&](IScene* scn, RE::Actor* a) {
+			VisitAllScenesWithRef(a_event.target.get(), [&](IScene* scn, RE::Actor* a) {
 				scn->OnActorHit(a, a_event);
 			});
 			return RE::BSEventNotifyControl::kContinue;

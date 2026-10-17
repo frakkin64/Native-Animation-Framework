@@ -22,17 +22,17 @@ namespace PackageOverride::EvalHook
 	}
 
 	void RegisterHook() {
-		REL::Relocation<EvaluatePackageSig> EvalPkgLoc{ REL::ID(1395257) };
-		REL::Relocation<CheckPackageSig> CheckPkgLoc{ REL::ID(609985) };
+		REL::Relocation<EvaluatePackageSig> EvalPkgLoc{ REL::VariantID{ 1395257, 2229805 } };
+		REL::Relocation<CheckPackageSig> CheckPkgLoc{ REL::VariantID{ 609985, 2231539 } };
 
 		if (!evalHook.Create(reinterpret_cast<LPVOID>(EvalPkgLoc.address()), &HookedEvaluatePackage)) {
-			logger::warn("Failed to create EvaluatePackage hook!");
+			REX::WARN("Failed to create EvaluatePackage hook!");
 		} else {
 			OriginalEvaluatePackage = reinterpret_cast<uintptr_t>(evalHook.GetTrampoline());
 		}
 
 		if (!checkHook.Create(reinterpret_cast<LPVOID>(CheckPkgLoc.address()), &HookedCheckPackage)) {
-			logger::warn("Failed to create CheckForNewPackage hook!");
+			REX::WARN("Failed to create CheckForNewPackage hook!");
 		} else {
 			OriginalCheckPackage = reinterpret_cast<uintptr_t>(checkHook.GetTrampoline());
 		}

@@ -78,9 +78,9 @@ namespace Menu::NAF
 		void LogTransform(RE::NiAVObject* n) {
 			if (!n)
 				return;
-			logger::info("{}:", n->name);
-			logger::info("world: {:.3f}, {:.3f}, {:.3f}", n->world.translate.x, n->world.translate.y, n->world.translate.z);
-			logger::info("local: {:.3f}, {:.3f}, {:.3f}", n->local.translate.x, n->local.translate.y, n->local.translate.z);
+			REX::INFO("{}:", n->name);
+			REX::INFO("world: {:.3f}, {:.3f}, {:.3f}", n->world.translate.x, n->world.translate.y, n->world.translate.z);
+			REX::INFO("local: {:.3f}, {:.3f}, {:.3f}", n->local.translate.x, n->local.translate.y, n->local.translate.z);
 		}
 
 		void DoFileBrowserWidget(int) {

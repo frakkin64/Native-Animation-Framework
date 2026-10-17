@@ -11,9 +11,9 @@ namespace RE
 		static constexpr auto RTTI{ RTTI::TESActionData };
 		static constexpr auto VTABLE{ VTABLE::TESActionData };
 
-		TESActionData(ACTIONPRIORITY a_priority, TESObjectREFR* a_refr, BGSAction* a_action)
+		TESActionData(ActionInput::ACTIONPRIORITY a_priority, TESObjectREFR* a_refr, BGSAction* a_action)
 		{
-			stl::emplace_vtable(this);
+			REX::EMPLACE_VTABLE(this);
 			priority = a_priority;
 			ref = RE::NiPointer<RE::TESObjectREFR>(a_refr);
 			action = a_action;

@@ -16,16 +16,16 @@ namespace RE
 	public:
 		GeometryReader(RE::BSTriShape* geo)
 		{
-			uint64_t vertDesc = geo->vertexDesc;
-			uint32_t vertSize = geo->GetVertexSize();
+			uint64_t vertDesc = geo->vertexDesc.desc;
+			uint32_t vertSize = static_cast<uint32_t>((vertDesc << 2) & 0x3C);
 			uint32_t numVerts = geo->numVertices;
 			vertices.resize(numVerts);
 
-			uint8_t* vertBlock = geo->geometryData->vertexData->vertexBlock;
+			uint8_t* vertBlock = static_cast<uint8_t*>(static_cast<RE::BSGraphics::TriShape*>(geo->rendererData)->vertexBuffer->data);
 			for (uint32_t i = 0; i < numVerts; i++) {
 				uint8_t* blockPos = &vertBlock[i * vertSize];
 
-				if (vertDesc & RE::BSTriShape::kFlag_FullPrecision) {
+				if (geo->vertexDesc.HasFlag(RE::BSGraphics::Vertex::VF_FULLPREC)) {
 					vertices[i].x = get_val<float>(blockPos);
 					vertices[i].y = get_val<float>(blockPos);
 					vertices[i].z = get_val<float>(blockPos);

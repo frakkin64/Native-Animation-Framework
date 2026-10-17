@@ -41,7 +41,7 @@ namespace Data
 				return false;
 			}
 
-			if (isFemale.has_value() && (a->GetSex() == 1) != isFemale.value()) {
+			if (isFemale.has_value() && (a->GetSex() == RE::SEX::kFemale) != isFemale.value()) {
 				return false;
 			}
 
@@ -76,7 +76,7 @@ namespace Data
 				if (auto iter = map.find(rootBehavior.value()); iter != map.end()) {
 					rootBehavior = iter->second;
 				} else {
-					logger::warn("Condition uses invalid skeleton! Skeleton attribute will be ignored.");
+					REX::WARN("Condition uses invalid skeleton! Skeleton attribute will be ignored.");
 					rootBehavior = std::nullopt;
 				}
 			}

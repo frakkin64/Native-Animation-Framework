@@ -14,7 +14,7 @@ namespace Scene
 		};
 
 		std::shared_ptr<const Data::Animation> currentAnim;
-		RE::stl::enumeration<StateFlag> state;
+		REX::TEnumSet<StateFlag> state;
 		std::string id;
 		std::string queuedNextId = "";
 		std::string startMorphSet;
@@ -75,7 +75,7 @@ namespace Scene
 		template <class Archive>
 		void serialize(Archive& ar, const uint32_t)
 		{
-			ar(cereal::base_class<IControlSystem>(this), currentAnim, state._impl, id, queuedNextId, startMorphSet, stopMorphSet);
+			ar(cereal::base_class<IControlSystem>(this), currentAnim, Utility::EnumRaw(state), id, queuedNextId, startMorphSet, stopMorphSet);
 		}
 	};
 
@@ -192,7 +192,7 @@ namespace Scene
 		bool hudActive = false;
 		bool autoAdvance = false;
 		size_t nextIndex = 0;
-		F4SE::stl::enumeration<TreeNodeState, uint8_t> nodeState;
+		REX::TEnumSet<TreeNodeState, uint8_t> nodeState;
 
 		virtual uint64_t QUID() override
 		{
@@ -301,7 +301,7 @@ namespace Scene
 			if (!sys)
 				return false;
 
-			nodeState._impl = 0;
+			nodeState.reset();
 			nextIndex = 0;
 			currentNode = n;
 
@@ -548,7 +548,7 @@ namespace Scene
 		void serialize(Archive& ar, const uint32_t ver)
 		{
 			ar(cereal::base_class<IControlSystem>(this), parentId, subSystem, queuedSubSystem, tree, currentNode,
-				hudActive, autoAdvance, nextIndex, nodeState._impl);
+				hudActive, autoAdvance, nextIndex, Utility::EnumRaw(nodeState));
 
 			if (ver >= 1) {
 				ar(id);

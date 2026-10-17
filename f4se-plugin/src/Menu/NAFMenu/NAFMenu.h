@@ -20,15 +20,15 @@ namespace Menu
 				RE::UI_MENU_FLAGS::kUsesMovementToDirection
 			);
 
-			depthPriority.set(RE::UI_DEPTH_PRIORITY::kTerminal);
+			depthPriority = RE::UI_DEPTH_PRIORITY::kTerminal;
 
 			const auto ScaleformManager = RE::BSScaleformManager::GetSingleton();
-			if (!ScaleformManager->LoadMovieEx(*this, "Interface/NAFMenu.swf", "root.Menu_mc", RE::Scaleform::GFx::Movie::ScaleModeType::kShowAll)) {
+			if (!ScaleformManager->LoadMovieEx(*this, "Interface/NAFMenu.swf", "root.Menu_mc", Scaleform::GFx::Movie::ScaleModeType::kShowAll)) {
 				RE::SendHUDMessage::ShowHUDMessage("Failed to load menu.", "UIMenuCancel", false, true);
 				return;
 			}
 
-			filterHolder = RE::msvc::make_unique<RE::BSGFxShaderFXTarget>(*uiMovie, "root.Menu_mc");
+			filterHolder = std::make_unique<RE::BSGFxShaderFXTarget>(*uiMovie, "root.Menu_mc");
 			if (filterHolder) {
 				filterHolder->CreateAndSetFiltersToHUD(RE::HUDColorTypes::kGameplayHUDColor);
 				shaderFXObjects.push_back(filterHolder.get());
@@ -155,7 +155,7 @@ namespace Menu
 			}
 		}
 
-		virtual void HandleEvent(const RE::ButtonEvent* a_event) override {
+		virtual void OnButtonEvent(const RE::ButtonEvent* a_event) override {
 			if (!a_event->disabled && inputEventHandlingEnabled && menuObj.IsObject() && menuObj.HasMember("ProcessButtonEvent")) {
 				switch (a_event->GetBSButtonCode()) {
 					case RE::BS_BUTTON_CODE::kEscape:
@@ -172,7 +172,7 @@ namespace Menu
 					case RE::BS_BUTTON_CODE::kE:
 					case RE::BS_BUTTON_CODE::kAButton:
 						if (a_event->QJustPressed()) {
-							RE::Scaleform::GFx::Value args[1];
+							Scaleform::GFx::Value args[1];
 							args[0] = "Accept";
 							menuObj.Invoke("ProcessButtonEvent", nullptr, args, 1);
 						}
@@ -182,7 +182,7 @@ namespace Menu
 					case RE::BS_BUTTON_CODE::kW:
 					case RE::BS_BUTTON_CODE::kDPAD_Up:
 						if (a_event->QJustPressed()) {
-							RE::Scaleform::GFx::Value args[1];
+							Scaleform::GFx::Value args[1];
 							args[0] = "Up";
 							menuObj.Invoke("ProcessButtonEvent", nullptr, args, 1);
 						}
@@ -192,7 +192,7 @@ namespace Menu
 					case RE::BS_BUTTON_CODE::kS:
 					case RE::BS_BUTTON_CODE::kDPAD_Down:
 						if (a_event->QJustPressed()) {
-							RE::Scaleform::GFx::Value args[1];
+							Scaleform::GFx::Value args[1];
 							args[0] = "Down";
 							menuObj.Invoke("ProcessButtonEvent", nullptr, args, 1);
 						}
@@ -202,7 +202,7 @@ namespace Menu
 					case RE::BS_BUTTON_CODE::kA:
 					case RE::BS_BUTTON_CODE::kDPAD_Left:
 						if (a_event->QJustPressed()) {
-							RE::Scaleform::GFx::Value args[1];
+							Scaleform::GFx::Value args[1];
 							args[0] = "Left";
 							menuObj.Invoke("ProcessButtonEvent", nullptr, args, 1);
 						}
@@ -212,7 +212,7 @@ namespace Menu
 					case RE::BS_BUTTON_CODE::kD:
 					case RE::BS_BUTTON_CODE::kDPAD_Right:
 						if (a_event->QJustPressed()) {
-							RE::Scaleform::GFx::Value args[1];
+							Scaleform::GFx::Value args[1];
 							args[0] = "Right";
 							menuObj.Invoke("ProcessButtonEvent", nullptr, args, 1);
 						}
@@ -221,7 +221,7 @@ namespace Menu
 					case RE::BS_BUTTON_CODE::kDelete:
 					case RE::BS_BUTTON_CODE::kXButton:
 						if (a_event->QJustPressed()) {
-							RE::Scaleform::GFx::Value args[1];
+							Scaleform::GFx::Value args[1];
 							args[0] = "Delete";
 							menuObj.Invoke("ProcessButtonEvent", nullptr, args, 1);
 						}

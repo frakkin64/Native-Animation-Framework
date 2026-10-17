@@ -8,7 +8,7 @@ namespace RE
 		void SetMovementSpeed(float a_speed)
 		{
 			using func_t = decltype(&MovementControllerNPC::SetMovementSpeed);
-			REL::Relocation<func_t> func{ REL::ID(356321) };
+			static REL::Relocation<func_t> func{ REL::VariantID{ 356321, 2234400 } };
 			return func(this, a_speed);
 		}
 	};

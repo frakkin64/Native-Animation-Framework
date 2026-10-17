@@ -75,16 +75,16 @@ namespace Scene
 	{
 		SceneManager::VisitScene(sceneId, [](IScene* scn) {
 			scn->ForEachActor([&](RE::Actor* currentActor, ActorPropertyMap&) {
-				RE::BGSAnimationSystemUtils::InitializeActorInstant(currentActor, false);
+				RE::BGSAnimationSystemUtils::InitializeActorInstant(*currentActor, false);
 
 				if (currentActor == player) {
 					CamHook::LookAt(player->Get3D());
 					GameUtil::SetFlyCam(true);
-					player->SetAIControlled(true);
+					player->SetAIControlledPackage(true);
 					player->DisableInputForPlayer("NAF_Scene", GetInputsToDisableForScene());
 				}
 
-				currentActor->SetGraphVariable("bHumanoidFootIKDisable", true);
+				currentActor->SetGraphVariableBool("bHumanoidFootIKDisable", true);
 			});
 
 			scn->ApplyEquipmentSet(scn->startEquipSet);
@@ -105,7 +105,7 @@ namespace Scene
 				bool hasPlayer = false;
 				scn->ForEachActor([&](RE::Actor* currentActor, ActorPropertyMap&) {
 					hasPlayer = hasPlayer || currentActor == player;
-					currentActor->SetGraphVariable("bHumanoidFootIKDisable", false);
+					currentActor->SetGraphVariableBool("bHumanoidFootIKDisable", false);
 				}, false);
 				scn->TransitionToAnimation(nullptr);
 				scn->ApplyEquipmentSet(scn->stopEquipSet);
@@ -181,7 +181,7 @@ namespace Scene
 
 		virtual ~Scene()
 		{
-			logger::trace("Scene ID#{} deleted.", uid);
+			REX::TRACE("Scene ID#{} deleted.", uid);
 		}
 
 		virtual void StartTimer(uint16_t id, double durationMs) override {
@@ -265,7 +265,7 @@ namespace Scene
 			SetAnimMult(100);
 
 			ForEachActor([&](RE::Actor* currentActor, ActorPropertyMap& props) {
-				currentActor->StopInteractingQuick();
+				currentActor->StopInteractingQuick(true, true, false);
 
 				if (currentActor != player) {
 					if (currentActor->HasKeyword(Data::Forms::TeammateReadyWeaponKW)) {
@@ -331,7 +331,7 @@ namespace Scene
 				FaceAnimation::FaceUpdateHook::StopAnimation(currentActor->GetActorHandle());
 
 				if (currentActor == player) {
-					player->SetAIControlled(false);
+					player->SetAIControlledPackage(false);
 					player->ReenableInputForPlayer();
 				} else {
 					if (auto hadReadyWeap = GetProperty<bool>(props, kHadReadyWeapon); hadReadyWeap.has_value()) {
@@ -442,7 +442,7 @@ namespace Scene
 			for(auto& p : actors) {
 				t_intfc->AddTask([hndl = p.first]() {
 					if (auto a = hndl.get(); a != nullptr) {
-						RE::BSAnimationGraphEvent evnt{ a.get(), "AnimObjUnequip", "" };
+						RE::BSAnimationGraphEvent evnt{ reinterpret_cast<std::uintptr_t>(a.get()), "AnimObjUnequip", "" };
 						RE::BGSAnimationSystemUtils::NotifyGraphSources(a.get(), evnt);
 					}
 				});
@@ -743,7 +743,10 @@ namespace Scene
 
 		for (auto& a : actors) {
 			if (a->parentCell != locationRef->parentCell)
-				a->WarpToRef(locationRef.get());
+				{
+					auto dest = locationRef.get();
+					a->WarpTo(dest->data.location, dest->data.angle.z, 0.0f, dest->parentCell, dest->GetWorldSpace(), false);
+				}
 		}
 
 		if (locationRef->IsFurniture()) {

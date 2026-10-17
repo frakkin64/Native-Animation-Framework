@@ -231,7 +231,7 @@ namespace BodyAnimation
 						continue;
 					}
 					if (value.contains(pair.key())) {
-						logger::warn("NANIM contains duplicate animation {}, last one will override others.", pair.key());
+						REX::WARN("NANIM contains duplicate animation {}, last one will override others.", pair.key());
 					}
 					value[pair.key()] = d;
 				}
@@ -344,7 +344,7 @@ namespace BodyAnimation
 					zstr::ifstream file(fileName, std::ios::binary);
 
 					if (!file.good() || file.fail()) {
-						logger::warn("Failed to open {}", fileName);
+						REX::WARN("Failed to open {}", fileName);
 						return false;
 					}
 
@@ -361,7 +361,7 @@ namespace BodyAnimation
 
 				return LoadFromStream(dataStream, loadCharacters);
 			} catch (const std::exception&) {
-				logger::warn("Failed to open {}", fileName);
+				REX::WARN("Failed to open {}", fileName);
 				return false;
 			}
 		}
@@ -372,7 +372,7 @@ namespace BodyAnimation
 			try {
 				data = nlohmann::json::from_bson(s);
 			} catch (std::exception ex) {
-				logger::warn("Failed to load NANIM data: {}", ex.what());
+				REX::WARN("Failed to load NANIM data: {}", ex.what());
 				return false;
 			}
 
@@ -413,7 +413,7 @@ namespace BodyAnimation
 				arch.close();
 				return true;
 			} catch (const std::exception&) {
-				logger::warn("Failed to open {}", fileName);
+				REX::WARN("Failed to open {}", fileName);
 				return false;
 			}
 		}

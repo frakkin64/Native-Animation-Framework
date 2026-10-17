@@ -781,7 +781,7 @@ namespace BodyAnimation
 			auto hndl = a_ref->GetHandle();
 			auto _3d = a_ref->Get3D();
 			for (auto& h : holders) {
-				if (h->targetRef.hash() == hndl.native_handle_const()) {
+				if (h->targetRef.hash() == hndl.native_handle()) {
 					h->SetTargetParent(nullptr, nullptr);
 					if (_3d != nullptr) {
 						h->SetTargetParent(_3d->GetObjectByName(h->targetNode), _3d->IsNode());

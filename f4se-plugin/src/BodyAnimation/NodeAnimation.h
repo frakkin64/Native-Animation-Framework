@@ -585,9 +585,9 @@ namespace BodyAnimation
 				if (local) {
 					RE::NiMatrix3 mat;
 					targetTransform.rotate.ToRotation(mat);
-					xAxis = { mat.entry[0].pt[0], mat.entry[0].pt[1], mat.entry[0].pt[2] };
-					yAxis = { mat.entry[1].pt[0], mat.entry[1].pt[1], mat.entry[1].pt[2] };
-					zAxis = { mat.entry[2].pt[0], mat.entry[2].pt[1], mat.entry[2].pt[2] };
+					xAxis = { mat.entry[0][0], mat.entry[0][1], mat.entry[0][2] };
+					yAxis = { mat.entry[1][0], mat.entry[1][1], mat.entry[1][2] };
+					zAxis = { mat.entry[2][0], mat.entry[2][1], mat.entry[2][2] };
 				} else {
 					xAxis = { 1, 0, 0 };
 					yAxis = { 0, 1, 0 };

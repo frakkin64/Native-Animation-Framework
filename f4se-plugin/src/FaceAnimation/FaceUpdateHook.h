@@ -117,7 +117,7 @@ namespace FaceAnimation
 			if (state->managedAnims[targetActor].anim == nullptr && !state->managedAnims[targetActor].eyeOverride.has_value()) {
 				state->managedAnims.erase(targetActor);
 				for (auto iter = state->managedDatas.begin(); iter != state->managedDatas.end();) {
-					if (iter->second.hash() == targetActor.native_handle_const()) {
+					if (iter->second.hash() == targetActor.native_handle()) {
 						iter = state->managedDatas.erase(iter);
 						break;
 					} else {
@@ -150,7 +150,7 @@ namespace FaceAnimation
 				auto eyeGeo = GetCachedEyeGeometry(h);
 				auto a = state->managedAnims.find(h);
 				bool pendingDelete = false;
-				RE::BSAutoLock bl{ data->instanceData.lock };
+				RE::BSAutoLock bl{ data->lipSyncLock };
 
 				if (a->second.anim != nullptr) {
 					if (!a->second.anim->havokSync) {
@@ -298,15 +298,15 @@ namespace FaceAnimation
 			eyeGeoCache.clear();
 		}
 
-		void RegisterHook(F4SE::Trampoline& trampoline)
+		void RegisterHook(REL::Trampoline& trampoline)
 		{
 			//BSFaceGenNiNode::UpdateMorphing + 0xBA
 			//Call to BSFaceGenAnimationData::Update
-			REL::Relocation<Update> faceGenUpdateCallLoc{ REL::ID(317245), 0xBA };
+			REL::Relocation<Update> faceGenUpdateCallLoc{ REL::VariantID{ 317245, 2209487 }, REL::Offset{ 0xBA, 0xBD } };
 
 			//BSFaceGenAnimationData::Update + 0x158
 			//Call to BSFaceGenAnimationData::UpdateMorphsFromLip
-			REL::Relocation<UpdateLip> updateLipMorphsCallLoc{ REL::ID(3139), 0x158 };
+			REL::Relocation<UpdateLip> updateLipMorphsCallLoc{ REL::VariantID{ 3139, 2209139 }, REL::Offset{ 0x158, 0x14B } };
 
 			OriginalUpdate = trampoline.write_call<5>(faceGenUpdateCallLoc.address(), &HookedUpdate);
 			OriginalUpdateLip = trampoline.write_call<5>(updateLipMorphsCallLoc.address(), &HookedUpdateLip);

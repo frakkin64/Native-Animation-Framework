@@ -32,7 +32,7 @@ namespace BodyAnimation
 		std::mutex updateLock;
 		Serialization::General::SerializableRefHandle targetHandle;
 		GraphState state = kIdle;
-		F4SE::stl::enumeration<GraphFlags, uint16_t> flags = kNoFlags;
+		REX::TEnumSet<GraphFlags, uint16_t> flags = kNoFlags;
 
 		RE::NiPointer<RE::NiAVObject> rootNode;
 		std::vector<RE::NiPointer<RE::NiAVObject>> nodes;
@@ -70,7 +70,7 @@ namespace BodyAnimation
 		}
 
 		void SetDisableOCBP(bool a_disable) {
-			if (F4SE::GetPluginInfo("OCBP plugin").has_value()) {
+			if (F4SE::GetPluginInfo("OCBP plugin") != nullptr) {
 				auto r = targetHandle.get();
 				for (auto& n : nodeMap) {
 					GameUtil::CallGlobalPapyrusFunction("OCBP_API", "SetBoneToggle", r.get(), a_disable, n);
@@ -120,7 +120,7 @@ namespace BodyAnimation
 
 		bool UpdateNodes(RE::TESObjectREFR* ref)
 		{
-			if (ref->GetHandle().native_handle_const() == targetHandle.hash()) {
+			if (ref->GetHandle().native_handle() == targetHandle.hash()) {
 				rootNode.reset();
 				nodes.clear();
 				ikManager.ClearNodes();

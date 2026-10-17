@@ -82,9 +82,7 @@ public:
 	}
 
 	static RE::NiTransform ApplyCoordinateSpace(const RE::NiTransform& parentSpace, const RE::NiTransform& childSpace) {
-		RE::NiTransform result;
-		parentSpace.Multiply(result, childSpace);
-		return result;
+		return parentSpace * childSpace;
 	}
 
 	static DirectionVectors QuatToDirVectors(const RE::NiQuaternion& q) {
@@ -92,9 +90,9 @@ public:
 		RE::NiMatrix3 mat;
 		q.ToRotation(mat);
 
-		result.x = NormalizePt3({ mat.entry[0].pt[0], mat.entry[0].pt[1], mat.entry[0].pt[2] });
-		result.y = NormalizePt3({ mat.entry[1].pt[0], mat.entry[1].pt[1], mat.entry[1].pt[2] });
-		result.z = NormalizePt3({ mat.entry[2].pt[0], mat.entry[2].pt[1], mat.entry[2].pt[2] });
+		result.x = NormalizePt3({ mat.entry[0][0], mat.entry[0][1], mat.entry[0][2] });
+		result.y = NormalizePt3({ mat.entry[1][0], mat.entry[1][1], mat.entry[1][2] });
+		result.z = NormalizePt3({ mat.entry[2][0], mat.entry[2][1], mat.entry[2][2] });
 
 		return result;
 	}

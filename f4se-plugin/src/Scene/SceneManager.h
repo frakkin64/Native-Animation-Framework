@@ -358,7 +358,7 @@ namespace Scene
 
 			if (a == player) {
 				player->DisableInputForPlayer("NAF_Scene", GetInputsToDisableForScene());
-				player->SetAIControlled(true);
+				player->SetAIControlledPackage(true);
 				state->playerWalkInstance = uid;
 				keyReg = Data::Events::Subscribe(Data::Events::HUD_UP_KEY_DOWN, &OnHudUpKey);
 
@@ -380,7 +380,7 @@ namespace Scene
 
 			a->StopCombat();
 			a->StopAlarmOnActor();
-			a->SetLinkedRef(destRefr, Data::Forms::NAFWalkToKW);
+			a->SetLinkedRef(const_cast<RE::TESObjectREFR*>(destRefr), Data::Forms::NAFWalkToKW);
 			if (PackageOverride::Set(a->GetActorHandle(), Data::Forms::NAFWalkPackage, true, std::make_unique<WalkFinishedFunctor>(uid))) {
 				SetActorInScene(a, true);
 				return true;
@@ -400,7 +400,7 @@ namespace Scene
 
 			if (ref == player) {
 				player->ReenableInputForPlayer();
-				player->SetAIControlled(false);
+				player->SetAIControlledPackage(false);
 				state->playerWalkInstance = 0;
 
 				F4SE::GetTaskInterface()->AddUITask([]() {

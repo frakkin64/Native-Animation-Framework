@@ -122,11 +122,6 @@ namespace RE
 		};
 	};
 
-	struct hkStringPtr
-	{
-		const char* stringAndFlag;
-	};
-
 	struct hkbVariableBindingSet : public hkReferencedObject
 	{
 		struct Binding
@@ -350,14 +345,7 @@ namespace RE
 		int32_t capabilities;
 		int32_t effectiveCapabilities;
 	};
-	static_assert( offsetof(hkbCharacter, hkbCharacter::behaviorGraph) == 0x80 );
-
-	struct hkPointerMap
-	{
-		void* elements;
-		int32_t numElements;
-		int32_t hashMod;
-	};
+	static_assert( offsetof(hkbCharacter, behaviorGraph) == 0x80 );
 
 	struct hkbBehaviorGraph : public hkbGenerator
 	{
@@ -369,7 +357,7 @@ namespace RE
 
 		hkEnum<VariableMode, int8_t> variableMode;
 		hkArray<uint16_t, hkContainerHeapAllocator> uniqueIdPool;
-		hkPointerMap* idToStateMachineTemplateMap;
+		hkPointerMap<void*, void*>* idToStateMachineTemplateMap;
 		hkArray<int32_t, hkContainerHeapAllocator> mirroredExternalIdMap;
 		hkPseudoRandomGenerator* pseudoRandomGenerator;
 		hkRefPtr<hkbGenerator> rootGenerator;
@@ -383,8 +371,8 @@ namespace RE
 		hkRefPtr<hkbSymbolIdMap> variableIdMap;
 		hkRefPtr<hkbSymbolIdMap> characterPropertyIdMap;
 		hkbVariableValueSet* variableValueSet;
-		hkPointerMap* nodeTemplateToCloneMap;
-		hkPointerMap* stateListenerTemplateToCloneMap;
+		hkPointerMap<void*, void*>* nodeTemplateToCloneMap;
+		hkPointerMap<void*, void*>* stateListenerTemplateToCloneMap;
 		hkArray<hkbNode*, hkContainerHeapAllocator> recentlyCreatedClones;
 		hkbNodePartitionInfo* nodePartitionInfo;
 		int32_t numIntermediateOutputs;
@@ -405,16 +393,16 @@ namespace RE
 		void setActiveGeneratorLocalTime(const hkbContext* a_context, hkbGenerator* a_gen, float a_time)
 		{
 			using func_t = decltype(&hkbBehaviorGraph::setActiveGeneratorLocalTime);
-			REL::Relocation<func_t> func{ REL::ID(992878) };
+			static REL::Relocation<func_t> func{ REL::VariantID{ 992878, 2260451 } };
 			return func(this, a_context, a_gen, a_time);
 		}
 
 	    hkbNode* getNodeClone(hkbNode* a_node)
 		{
 			using func_t = decltype(&hkbBehaviorGraph::getNodeClone);
-			REL::Relocation<func_t> func{ REL::ID(326555) };
+			static REL::Relocation<func_t> func{ REL::VariantID{ 326555, 2260454 } };
 			return func(this, a_node);
 		}
 	};
-	static_assert(offsetof(hkbBehaviorGraph, hkbBehaviorGraph::rootGenerator) == 0xC0);
+	static_assert(offsetof(hkbBehaviorGraph, rootGenerator) == 0xC0);
 }

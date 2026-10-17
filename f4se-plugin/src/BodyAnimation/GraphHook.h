@@ -293,21 +293,21 @@ namespace BodyAnimation
 		static void RegisterHook()
 		{
 			//IAnimationGraphManagerHolder::UpdateAnimationGraphManager(BSAnimationUpdateData)
-			REL::Relocation<GraphUpdate> hookLoc1{ REL::ID(1492656) };
+			REL::Relocation<GraphUpdate> hookLoc1{ REL::VariantID{ 1492656, 2214536 } };
 
 			if (UpdateDetour.Create(reinterpret_cast<LPVOID>(hookLoc1.address()), &HookedGraphUpdate)) {
 				OriginalUpdate = reinterpret_cast<uintptr_t>(UpdateDetour.GetTrampoline());
 			} else {
-				logger::warn("Failed to create IAnimationGraphManagerHolder::UpdateAnimationGraphManager hook!");
+				REX::WARN("Failed to create IAnimationGraphManagerHolder::UpdateAnimationGraphManager hook!");
 			}
 
 			//TESObjectREFR::Set3D
-			REL::Relocation<Set3d> hookLoc2{ REL::ID(1216262) };
+			REL::Relocation<Set3d> hookLoc2{ REL::VariantID{ 1216262, 2201055 } };
 
 			if (Set3dDetour.Create(reinterpret_cast<LPVOID>(hookLoc2.address()), &HookedSet3D)) {
 				OriginalSet3d = reinterpret_cast<uintptr_t>(Set3dDetour.GetTrampoline());
 			} else {
-				logger::warn("Failed to create TESObjectREFR::Set3D hook!");
+				REX::WARN("Failed to create TESObjectREFR::Set3D hook!");
 			}
 		}
 

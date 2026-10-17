@@ -25,7 +25,7 @@ namespace Serialization
 		template <typename T>
 		RE::BSPointerHandle<T> EmptyHandle()
 		{
-			return RE::BSPointerHandle<T>(RE::BSUntypedPointerHandle(0));
+			return RE::BSPointerHandle<T>();
 		}
 
 		template <typename T>
@@ -35,7 +35,7 @@ namespace Serialization
 			if (frm != nullptr) {
 				return frm->formID;
 			} else {
-				logger::warn(FMT_STRING("Handle {:x} no longer points to a valid form, saving empty ID to co-save."), hndl.native_handle());
+				REX::WARN("Handle {:x} no longer points to a valid form, saving empty ID to co-save.", hndl.native_handle());
 				return 0;
 			}
 		}
@@ -45,9 +45,9 @@ namespace Serialization
 		{
 			auto frm = DeserializeForm<T>(formId);
 			if (frm != nullptr) {
-				return  RE::BSPointerHandle<T>(RE::BSUntypedPointerHandle(frm->GetHandle().native_handle()));
+				return RE::BSPointerHandle<T>(frm);
 			} else {
-				logger::warn(FMT_STRING("Ref ID from co-save is not valid. Empty handle will be used."));
+				REX::WARN("Ref ID from co-save is not valid. Empty handle will be used.");
 				return EmptyHandle<T>();
 			}
 		}
@@ -64,7 +64,7 @@ namespace Serialization
 			}
 			catch (std::exception& e)
 			{
-				logger::warn("Failed to serialize {} record data due to serialization error. Full Message: {}", rcrd, e.what());
+				REX::WARN("Failed to serialize {} record data due to serialization error. Full Message: {}", rcrd, e.what());
 				return;
 			}
 
@@ -74,14 +74,14 @@ namespace Serialization
 			if (size <= UINT32_MAX) {
 				uint32_t smallSize = static_cast<uint32_t>(size);
 				if (!s_intfc->WriteRecordData(&smallSize, sizeof(smallSize))) {
-					logger::warn("Failed to write {} record size. Co-save might become corrupted.", rcrd);
+					REX::WARN("Failed to write {} record size. Co-save might become corrupted.", rcrd);
 					return;
 				}
 				if (!s_intfc->WriteRecordData(strData.data(), smallSize)) {
-					logger::warn("Failed to write {} record data. Co-save might become corrupted.", rcrd);
+					REX::WARN("Failed to write {} record data. Co-save might become corrupted.", rcrd);
 				}
 			} else {
-				logger::warn("{} record data is over supported limit. Data will not be saved!", rcrd);
+				REX::WARN("{} record data is over supported limit. Data will not be saved!", rcrd);
 			}
 		}
 
@@ -90,14 +90,14 @@ namespace Serialization
 		{
 			uint32_t size;
 			if (s_intfc->ReadRecordData(&size, sizeof(size)) != sizeof(size)) {
-				logger::warn("Failed to read {} record size. Data might be corrupted.", rcrd);
+				REX::WARN("Failed to read {} record size. Data might be corrupted.", rcrd);
 				return false;
 			}
 
 			std::vector<uint8_t> binaryData;
 			binaryData.resize(size);
 			if (s_intfc->ReadRecordData(&binaryData[0], size) != size) {
-				logger::warn("Failed to read {} record data. Data might be corrupted.", rcrd);
+				REX::WARN("Failed to read {} record data. Data might be corrupted.", rcrd);
 				return false;
 			}
 
@@ -110,7 +110,7 @@ namespace Serialization
 			}
 			catch (std::exception& e)
 			{
-				logger::warn("Failed to read {} record data due to serialization error. Full Message: {}", rcrd, e.what());
+				REX::WARN("Failed to read {} record data due to serialization error. Full Message: {}", rcrd, e.what());
 				return false;
 			}
 
@@ -233,7 +233,7 @@ namespace Serialization
 
 			uint32_t hash() const
 			{
-				return data.native_handle_const();
+				return data.native_handle();
 			}
 
 			RE::BSPointerHandle<T> native() const {
@@ -247,11 +247,11 @@ namespace Serialization
 
 			bool operator==(SerializableHandle<T> other) const
 			{
-				return data.native_handle_const() == other.data.native_handle_const();
+				return data.native_handle() == other.data.native_handle();
 			}
 
 			operator bool() const {
-				return data.native_handle_const() > 0;
+				return data.native_handle() > 0;
 			}
 
 			template <class Archive>

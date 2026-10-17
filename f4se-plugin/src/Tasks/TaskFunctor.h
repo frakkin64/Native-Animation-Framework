@@ -6,7 +6,7 @@ namespace Tasks
 	{
 	public:
 		TaskFunctor(){}
-		virtual void Run() { logger::warn("Default TaskFunctor called."); }
+		virtual void Run() { REX::WARN("Default TaskFunctor called."); }
 		virtual void Finalize(){}
 		template <class Archive>
 		void serialize(Archive&) const{}

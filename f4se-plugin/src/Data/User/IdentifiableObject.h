@@ -56,7 +56,7 @@ namespace Data
 			auto rForm = RE::TESDataHandler::GetSingleton()->LookupForm<T>(formId, source);
 			if (rForm == nullptr) {
 				if (verbose)
-					logger::warn("'{}'->'{:08X}' does not point to a valid {}.", source, formId, typeid(T).name());
+					REX::WARN("'{}'->'{:08X}' does not point to a valid {}.", source, formId, typeid(T).name());
 				return nullptr;
 			}
 

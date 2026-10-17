@@ -131,12 +131,12 @@ namespace Data
 			}
 		};
 
-		static ActorGender ActorSexToGender(RE::Actor::Sex s)
+		static ActorGender ActorSexToGender(RE::SEX s)
 		{
 			switch (s) {
-			case RE::Actor::Sex::Male:
+			case RE::SEX::kMale:
 				return ActorGender::Male;
-			case RE::Actor::Sex::Female:
+			case RE::SEX::kFemale:
 				return ActorGender::Female;
 			default:
 				return ActorGender::Any;
@@ -391,13 +391,13 @@ namespace Data
 			std::string_view graph = a->race->behaviorGraphProjectName[0];
 
 			switch (a->GetSex()) {
-			case RE::Actor::Sex::None:
+			case RE::SEX::kNone:
 				iMap[graph].noGenderCount += 1;
 				break;
-			case RE::Actor::Sex::Male:
+			case RE::SEX::kMale:
 				iMap[graph].maleCount += 1;
 				break;
-			case RE::Actor::Sex::Female:
+			case RE::SEX::kFemale:
 				iMap[graph].femaleCount += 1;
 				break;
 			}

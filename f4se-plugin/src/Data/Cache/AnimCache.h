@@ -60,7 +60,7 @@ namespace Data
 
 			fileHandle.open(cachePath, baseMode);
 			if (!fileHandle.is_open()) {
-				logger::warn("Failed to open {}", cachePath);
+				REX::WARN("Failed to open {}", cachePath);
 				return false;
 			}
 
@@ -85,14 +85,14 @@ namespace Data
 			while (fileHandle.peek() != EOF) {
 				std::string filename;
 				if (!ReadString(&filename)) {
-					logger::warn("Failed to read filename from anim cache!");
+					REX::WARN("Failed to read filename from anim cache!");
 					Clear();
 					return false;
 				}
 
 				uint64_t size;
 				if (!ReadValue(&size)) {
-					logger::warn("Failed to read file size from anim cache!");
+					REX::WARN("Failed to read file size from anim cache!");
 					Clear();
 					return false;
 				}
@@ -100,7 +100,7 @@ namespace Data
 				uint64_t offset = fileHandle.tellg();
 
 				if (!fileHandle.seekg(offset + size)) {
-					logger::warn("File size in anim cache is beyond end of file!");
+					REX::WARN("File size in anim cache is beyond end of file!");
 					Clear();
 					return false;
 				}
@@ -129,20 +129,20 @@ namespace Data
 			fileHandle.seekg(0, std::ios::end);
 
 			if (!WriteString(&filename)) {
-				logger::warn("Failed to write file name to anim cache!");
+				REX::WARN("Failed to write file name to anim cache!");
 				return false;
 			}
 
 			uint64_t size = data.size();
 			if (!WriteValue(&size)) {
-				logger::warn("Failed to write file size to anim cache!");
+				REX::WARN("Failed to write file size to anim cache!");
 				return false;
 			}
 
 			uint64_t offset = fileHandle.tellg();
 
 			if (!fileHandle.write(data.data(), size)) {
-				logger::warn("Failed to write file to anim cache!");
+				REX::WARN("Failed to write file to anim cache!");
 				return false;
 			}
 
@@ -235,7 +235,7 @@ namespace Data
 		static bool WriteString(const std::string* in)
 		{
 			if (in->size() > UINT16_MAX) {
-				logger::warn("Cannot write string to anim cache, length exceeds max.");
+				REX::WARN("Cannot write string to anim cache, length exceeds max.");
 				return false;
 			}
 

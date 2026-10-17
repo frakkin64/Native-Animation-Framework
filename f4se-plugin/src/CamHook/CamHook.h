@@ -118,6 +118,13 @@ namespace CamHook
 		void HookedUpdate(RE::FreeCameraState* s)
 		{
 			OriginalUpdate(s);
+
+			// NG and AE keep a "running" flag at TESCameraState+0x24 (set in FreeCameraState::Begin, cleared in End) and
+			// FreeCameraState::Update does nothing while it is clear. OG has no such flag.
+			if (!REX::FModule::IsRuntimeOG() && *reinterpret_cast<const std::uint8_t*>(reinterpret_cast<std::uintptr_t>(s) + 0x24) == 0) {
+				return;
+			}
+
 			bool doUpdate = false;
 
 			std::unique_lock l{ lock };
@@ -129,31 +136,31 @@ namespace CamHook
 						doUpdate = true;
 						auto& mat = camNode->local.rotate;
 
-						RE::NiPoint3 up = { mat.entry[2].pt[0], mat.entry[2].pt[1], mat.entry[2].pt[2] };
-						RE::NiPoint3 forward = { mat.entry[1].pt[0], mat.entry[1].pt[1], mat.entry[1].pt[2] };
-						RE::NiPoint3 left = { mat.entry[0].pt[0], mat.entry[0].pt[1], mat.entry[0].pt[2] };
+						RE::NiPoint3 up = { mat.entry[2][0], mat.entry[2][1], mat.entry[2][2] };
+						RE::NiPoint3 forward = { mat.entry[1][0], mat.entry[1][1], mat.entry[1][2] };
+						RE::NiPoint3 left = { mat.entry[0][0], mat.entry[0][1], mat.entry[0][2] };
 
 						camNode->local.translate += (up * upDownInput);
 						camNode->local.translate += (forward * forwardBackInput);
 						camNode->local.translate += (left * leftRightInput);
 
-						s->x = camNode->local.translate.x;
-						s->y = camNode->local.translate.y;
-						s->z = camNode->local.translate.z;
+						s->translation.x = camNode->local.translate.x;
+						s->translation.y = camNode->local.translate.y;
+						s->translation.z = camNode->local.translate.z;
 						
 						if (useExternalOrbit.load() == true && !orbitTarget.IsIdentity()) {
 							auto r = MathUtil::GetLookAtRotation(camNode->local.translate, orbitTarget.get());
-							s->yaw = r.x;
-							camNode->local.rotate.FromEulerAnglesZXY(s->yaw, s->pitch, 0.0f);
+							s->rotation.y = r.x;
+							camNode->local.rotate.FromEulerAnglesZXY(s->rotation.y, s->rotation.x, 0.0f);
 						}
 						
 					}
 
 					if (turnRightLeftInput != 0.0f || turnUpDownInput != 0.0f) {
 						doUpdate = true;
-						s->pitch += MathUtil::DegreeToRadian(turnUpDownInput * 0.5f);
-						s->yaw += MathUtil::DegreeToRadian(turnRightLeftInput * 0.5f);
-						camNode->local.rotate.FromEulerAnglesZXY(s->yaw, s->pitch, 0.0f);
+						s->rotation.x += MathUtil::DegreeToRadian(turnUpDownInput * 0.5f);
+						s->rotation.y += MathUtil::DegreeToRadian(turnRightLeftInput * 0.5f);
+						camNode->local.rotate.FromEulerAnglesZXY(s->rotation.y, s->rotation.x, 0.0f);
 					}
 				}
 
@@ -163,18 +170,18 @@ namespace CamHook
 					//We have to update both the free camera's numbers and the cam node's numbers to avoid input lag.
 					switch (pendingInput) {
 					case 1:
-						s->z += 1.0f;
+						s->translation.z += 1.0f;
 						camNode->local.translate.z += 1.0f;
 						break;
 					case 2:
-						s->z -= 1.0f;
+						s->translation.z -= 1.0f;
 						camNode->local.translate.z -= 1.0f;
 						break;
 					}
 
 					auto r = MathUtil::GetLookAtRotation(camNode->local.translate, lookAtNode->world.translate);
-					s->pitch = r.y;
-					s->yaw = r.x;
+					s->rotation.x = r.y;
+					s->rotation.y = r.x;
 
 					camNode->local.rotate.FromEulerAnglesZXY(r.x, r.y, 0.0f);
 				}
@@ -188,10 +195,10 @@ namespace CamHook
 
 		void RegisterHook()
 		{
-			REL::Relocation<UpdateSig> UpdateLoc{ REL::ID(541110) };
+			REL::Relocation<UpdateSig> UpdateLoc{ REL::VariantID{ 541110, 2248280 } };
 
 			if (!updateHook.Create(reinterpret_cast<LPVOID>(UpdateLoc.address()), &HookedUpdate)) {
-				logger::warn("Failed to create FreeCameraState::Update hook!");
+				REX::WARN("Failed to create FreeCameraState::Update hook!");
 			} else {
 				OriginalUpdate = reinterpret_cast<uintptr_t>(updateHook.GetTrampoline());
 			}

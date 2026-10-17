@@ -23,7 +23,7 @@ namespace Data {
 
 			void LogError(const std::string_view& errMsg) {
 				if (verbose)
-					logger::warn("[{} - Char:{}] {}", GetFileName(), currentNode.offset_debug(), errMsg);
+					REX::WARN("[{} - Char:{}] {}", GetFileName(), currentNode.offset_debug(), errMsg);
 			}
 
 			void CustomFail(const std::string_view& errMsg) {

@@ -5,10 +5,26 @@
 
 namespace LooksMenu
 {
-	enum LMVersion
+	// Known f4ee.dll builds, identified by (PE TimeDateStamp, SizeOfImage) of the loaded module (same key as F4EEPatch).
+	// Offsets are RVAs: hookRVA is the code the ApplyMorphsToShapes detour is placed on (OG 1.6.18/1.6.20 keep the
+	// offsets NAF always used; the 1.7.x builds hook the function start, vtable slot 18 of BodyMorphInterface),
+	// instanceRVA is the BodyMorphInterface singleton (its vptr is the vtable).
+	struct BuildInfo
 	{
-		k1_6_20,
-		k1_6_18
+		const char* name;
+		std::uint32_t timestamp;
+		std::uint32_t imageSize;
+		std::uint64_t hookRVA;
+		std::uint64_t instanceRVA;
+	};
+
+	inline constexpr BuildInfo kBuilds[] = {
+		{ "1.6.18", 0x5DEDC245, 0x10E000, 0x10040, 0xFB440 },
+		{ "1.6.20", 0x5FA27A28, 0x10F000, 0xFFCC, 0xF4DF0 },
+		{ "1.7.0.1", 0x665384C3, 0x11B000, 0x11480, 0x107000 },
+		{ "1.7.0.2", 0x696BD132, 0x11B000, 0x11480, 0x107320 },
+		{ "1.7.0.3", 0x6A234220, 0x11B000, 0x11400, 0x107E00 },
+		{ "1.7.0.4", 0x6A95CC57, 0x122000, 0x11780, 0x10DD30 },
 	};
 
 	class BodyMorphInterface
@@ -44,26 +60,8 @@ namespace LooksMenu
 		virtual bool UpdateMorphs(RE::Actor* actor) { return false; }
 	};
 
-	uint64_t checksum(const std::string& filename)
-	{
-		std::ifstream file(filename, std::ios::binary);
-		if (!file) {
-			logger::warn("Error opening file: {}", filename);
-			return 0;
-		}
-
-		std::vector<uint8_t> buffer(std::istreambuf_iterator<char>(file), {});
-
-		uint64_t sum = 0;
-		for (uint8_t byte : buffer) {
-			sum += byte;
-		}
-
-		return sum;
-	}
-
 	bool isInstalled = false;
-	LMVersion version;
+	const BuildInfo* build = nullptr;
 
 	namespace detail
 	{
@@ -74,17 +72,6 @@ namespace LooksMenu
 
 		BodyMorphInterface* g_bodyMorphInterface = nullptr;
 
-		uint64_t GetVersionOffset(uint64_t off1_6_18, uint64_t off1_6_20) {
-			switch (version) {
-			case k1_6_18:
-				return off1_6_18;
-			case k1_6_20:
-				return off1_6_20;
-			default:
-				return 0;
-			}
-		}
-
 		bool HookedApplyMorphs(BodyMorphInterface* a1, RE::Actor* a2, RE::NiAVObject* a3) {
 			std::this_thread::sleep_for(std::chrono::microseconds(1));
 			return originalApply(a1, a2, a3);
@@ -93,55 +80,49 @@ namespace LooksMenu
 		void RegisterHook() {
 			uintptr_t baseAddr = reinterpret_cast<uintptr_t>(GetModuleHandleA("f4ee.dll"));
 
-			if (!applyMorphsHook.Create(reinterpret_cast<LPVOID>(baseAddr + GetVersionOffset(0x10040, 0xFFCC)), &HookedApplyMorphs)) {
-				logger::warn("Failed to create ApplyMorphsToShapes hook!");
+			if (!applyMorphsHook.Create(reinterpret_cast<LPVOID>(baseAddr + build->hookRVA), &HookedApplyMorphs)) {
+				REX::WARN("Failed to create ApplyMorphsToShapes hook!");
 			} else {
 				originalApply = reinterpret_cast<ApplyMorphsToShapes*>(applyMorphsHook.GetTrampoline());
 			}
 
-			g_bodyMorphInterface = reinterpret_cast<BodyMorphInterface*>(baseAddr + GetVersionOffset(0xFB440, 0xF4DF0));
+			g_bodyMorphInterface = reinterpret_cast<BodyMorphInterface*>(baseAddr + build->instanceRVA);
 		}
 	}
 
 	void Init() {
-		if (F4SE::GetPluginInfo("F4EE").has_value()) {
-			// Unfortunately expired has never changed F4EE's plugin version, so we gotta do this the old fashioned way.
-			if (auto sum = checksum("Data/F4SE/Plugins/f4ee.dll"); sum > 0) {
-				isInstalled = true;
-				std::string verStr = "";
+		// F4EE has never changed its plugin version between builds, so the loaded image is identified instead.
+		const auto module = GetModuleHandleA("f4ee.dll");
+		if (!module) {
+			REX::INFO("LooksMenu not installed, support disabled.");
+			return;
+		}
 
-				switch (sum) {
-				case LOOKSMENU_1_6_18_CHECKSUM:
-					version = k1_6_18;
-					verStr = "1.6.18";
-					break;
-				case LOOKSMENU_1_6_20_CHECKSUM:
-					version = k1_6_20;
-					verStr = "1.6.20";
-					break;
-				default:
-					isInstalled = false;
-				}
+		const auto dos = reinterpret_cast<const IMAGE_DOS_HEADER*>(module);
+		const auto nt = reinterpret_cast<const IMAGE_NT_HEADERS64*>(reinterpret_cast<const std::uint8_t*>(module) + dos->e_lfanew);
+		const auto timestamp = nt->FileHeader.TimeDateStamp;
+		const auto imageSize = nt->OptionalHeader.SizeOfImage;
 
-				if (isInstalled) {
-					logger::info("LooksMenu version {} detected.", verStr);
-					detail::RegisterHook();
-				} else {
-					logger::info("Unsupported LooksMenu version. Checksum: {:X}", sum);
-				}
-
-			} else {
-				logger::warn("Failed to get LooksMenu version, support disabled.");
+		for (auto& b : kBuilds) {
+			if (b.timestamp == timestamp && b.imageSize == imageSize) {
+				build = &b;
+				break;
 			}
+		}
+
+		if (build) {
+			isInstalled = true;
+			REX::INFO("LooksMenu version {} detected.", build->name);
+			detail::RegisterHook();
 		} else {
-			logger::info("LooksMenu not installed, support disabled.");
+			REX::INFO("Unsupported LooksMenu version. Timestamp: {:X}, image size: {:X}", timestamp, imageSize);
 		}
 	}
 
 	void SetMorph(RE::Actor* actor, const RE::BSFixedString& morph, RE::BGSKeyword* keyword, float value)
 	{
 		if (isInstalled && actor && detail::g_bodyMorphInterface) {
-			bool isFemale = (actor->GetSex() == 1);
+			bool isFemale = (actor->GetSex() == RE::SEX::kFemale);
 			detail::g_bodyMorphInterface->SetMorph(actor, isFemale, morph, keyword, value);
 		}
 	}
@@ -155,7 +136,7 @@ namespace LooksMenu
 
 	void RemoveMorphsByName(RE::Actor* actor, const RE::BSFixedString& morph) {
 		if (isInstalled && actor && detail::g_bodyMorphInterface) {
-			bool isFemale = (actor->GetSex() == 1);
+			bool isFemale = (actor->GetSex() == RE::SEX::kFemale);
 			detail::g_bodyMorphInterface->RemoveMorphsByName(actor, isFemale, morph);
 		}
 	}

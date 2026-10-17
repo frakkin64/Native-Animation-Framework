@@ -4,21 +4,6 @@
 //stupid windows
 #undef DrawText
 
-namespace RE
-{
-	class HUDMenu
-	{
-	public:
-		bool CheckHUDMode(const BSFixedString& a_type)
-		{
-			using func_t = decltype(&HUDMenu::CheckHUDMode);
-			REL::Relocation<func_t> func{ REL::ID(1317216) };
-			return func(this, a_type);
-		}
-
-	};
-}
-
 namespace Menu
 {
 	typedef void(OnHUDModeChanged)(RE::HUDMenu*);
@@ -429,8 +414,18 @@ namespace Menu
 			}
 		}
 
+		// Replaces HUDMenu::CheckHudMode (OG 1317216), which has no standalone function in NG/AE; hudModes is at +0x200 on all runtimes.
+		static bool CheckHUDMode(RE::HUDMenu* hud, const RE::BSFixedString& a_type) {
+			for (auto& mode : hud->hudModes) {
+				if (mode.modeString == a_type) {
+					return true;
+				}
+			}
+			return false;
+		}
+
 		static void OnHUDModeChanged(RE::HUDMenu* hud) {
-			if ((hud->CheckHUDMode("Pipboy")) && !hidden) {
+			if ((CheckHUDMode(hud, "Pipboy")) && !hidden) {
 				SetAlpha(0.0f);
 				hidden = true;
 			} else if (hidden) {
@@ -440,11 +435,12 @@ namespace Menu
 			OriginalHUDModeChanged(hud);
 		}
 
-		static void RegisterHook(F4SE::Trampoline& trampoline)
+		static void RegisterHook(REL::Trampoline& trampoline)
 		{
 			//HUDMenu::OnHUDMessage_SetMode + 0xA8
 			//Call to HUDMenu::OnHUDModeChanged
-			REL::Relocation<Menu::OnHUDModeChanged> modeChangedLoc{ REL::ID(1385889), 0xA8 };
+			// OG: +0xA8, NG/AE: +0x18F
+			REL::Relocation<Menu::OnHUDModeChanged> modeChangedLoc{ REL::VariantID{ 1385889, 2248851 }, REL::Offset{ 0xA8, 0x18F } };
 
 			OriginalHUDModeChanged = trampoline.write_call<5>(modeChangedLoc.address(), &OnHUDModeChanged);
 		}
@@ -544,14 +540,14 @@ namespace Menu
 		}
 
 		template <class... Ts>
-		static RE::Scaleform::GFx::Value InvokeAS3(const std::string& funcName, Ts&&... inputs)
+		static Scaleform::GFx::Value InvokeAS3(const std::string& funcName, Ts&&... inputs)
 		{
-			RE::Scaleform::GFx::Value result = "";
+			Scaleform::GFx::Value result = "";
 			if (!menuInstance) {
 				return result;
 			}
 
-			std::array<RE::Scaleform::GFx::Value, sizeof...(inputs)> args;
+			std::array<Scaleform::GFx::Value, sizeof...(inputs)> args;
 			int i = 0;
 
 			([&] {
@@ -563,9 +559,9 @@ namespace Menu
 			return result;
 		}
 
-		static RE::Scaleform::GFx::Value InvokeAS3(const std::string& funcName)
+		static Scaleform::GFx::Value InvokeAS3(const std::string& funcName)
 		{
-			RE::Scaleform::GFx::Value result;
+			Scaleform::GFx::Value result;
 			if (!menuInstance) {
 				return result;
 			}

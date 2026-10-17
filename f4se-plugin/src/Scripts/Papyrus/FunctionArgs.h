@@ -55,7 +55,7 @@ namespace Papyrus
 
 			bool operator()(RE::BSScrapArray<RE::BSScript::Variable>& a_args)
 			{
-				args->GetArrayCopy(a_args, *vm);
+				args->ReplaceArray(a_args, *vm);
 				return true;
 			}
 
@@ -66,14 +66,6 @@ namespace Papyrus
 		};
 
 		static_assert(sizeof(FunctionArgsBase) == 0x10);
-
-		inline RE::BSTThreadScrapFunction<bool(RE::BSScrapArray<RE::BSScript::Variable>&)>
-			CreateThreadScrapFunction(FunctionArgsBase& a_args)
-		{
-			using func_t = decltype(&detail::CreateThreadScrapFunction);
-			REL::Relocation<func_t> func{ REL::ID(69733) };
-			return func(a_args);
-		}
 	}
 
 	template <class... Args>
@@ -92,7 +84,12 @@ namespace Papyrus
 
 		RE::BSTThreadScrapFunction<bool(RE::BSScrapArray<RE::BSScript::Variable>&)> get()
 		{
-			return detail::CreateThreadScrapFunction(*this);
+			// Same body as the game's BSCore::CreateThreadScrapFunction lambda (OG 1.10.163 ID 69733, not present as
+			// a standalone function in NG/AE): copy the packed arguments into the scrap array.
+			return [wrapper = args, machine = vm](RE::BSScrapArray<RE::BSScript::Variable>& a_out) {
+				wrapper->ReplaceArray(a_out, *machine);
+				return true;
+			};
 		}
 	};
 

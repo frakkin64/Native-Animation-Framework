@@ -25,7 +25,7 @@ namespace FaceAnimation
 			auto targetAnim = Data::GetFaceAnim(id);
 
 			if (targetAnim == nullptr) {
-				logger::warn("Cannot load face animation '{}', no such animation id exists.", id);
+				REX::WARN("Cannot load face animation '{}', no such animation id exists.", id);
 				return false;
 			}
 
@@ -35,7 +35,7 @@ namespace FaceAnimation
 				cereal::BinaryInputArchive inArchive(buffer);
 				inArchive(data);
 			} catch (std::exception ex) {
-				logger::warn("Failed to load AnimationData. Full message: {}", ex.what());
+				REX::WARN("Failed to load AnimationData. Full message: {}", ex.what());
 				return false;
 			}
 
@@ -74,7 +74,7 @@ namespace FaceAnimation
 			for (auto& tl : data.timelines) {
 				if (!tl.isEyes) {
 					if (tl.morph < 54) {
-						animData->finalExp.exp[tl.morph] = std::clamp(tl.GetValueAtTime(timeDeltaNormalized), 0.001f, 0.999f);
+						animData->finalExpression[tl.morph] = std::clamp(tl.GetValueAtTime(timeDeltaNormalized), 0.001f, 0.999f);
 					} else if (tl.morph == 100) {
 						GameUtil::SetEmissiveMult(eyeGeo, tl.GetValueAtTime(timeDeltaNormalized));
 					}

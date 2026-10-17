@@ -20,7 +20,7 @@
 	#pragma comment(lib, "DetourXS/LDE64")
 	extern "C" size_t __stdcall LDE(const LPVOID lpData, unsigned int size);
 #else
-	#pragma comment(lib, "../src/detourXS/LDE64x64")
+	#pragma comment(lib, "LDE64x64")
 	extern "C" size_t __fastcall LDE(const LPVOID lpData, unsigned int size);
 #endif
 

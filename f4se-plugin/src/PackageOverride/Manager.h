@@ -65,14 +65,14 @@ namespace PackageOverride
 		public Data::EventListener<PkgEventListener>
 	{
 		virtual RE::BSEventNotifyControl ProcessEvent(const RE::TESPackageEvent& a_event, RE::BSTEventSource<RE::TESPackageEvent>*) override {
-			if (a_event.type == RE::TESPackageEvent::End && a_event.refr != nullptr) {
+			if (a_event.eventType == RE::TESPackageEvent::EventType::kEnd && a_event.actorRef != nullptr) {
 				std::unique_ptr<PackageEndFunctor> queuedCallback = nullptr;
 				{
 					std::shared_lock l{ lock };
 
 					for (auto& info : state->packages) {
-						if (auto a = info.first.get().get(); a && a->formID == a_event.refr->formID
-							&& info.second.package.get() != nullptr && info.second.package.get()->formID == a_event.formId
+						if (auto a = info.first.get().get(); a && a->formID == a_event.actorRef->formID
+							&& info.second.package.get() != nullptr && info.second.package.get()->formID == a_event.packageFormID
 							&& info.second.doneCallback.has_value()) {
 							queuedCallback = std::move(info.second.doneCallback.value());
 							queuedCallback->data = info.first;

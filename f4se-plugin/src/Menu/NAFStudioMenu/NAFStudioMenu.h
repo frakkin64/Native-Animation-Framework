@@ -210,11 +210,11 @@ namespace Menu
 			return false;
 		}
 
-		RE::Scaleform::GFx::Value CreateNodeMarker(size_t idx, const std::string_view& clickType, int iconType) {
+		Scaleform::GFx::Value CreateNodeMarker(size_t idx, const std::string_view& clickType, int iconType) {
 			assert(idx < UINT32_MAX);
 			
-			RE::Scaleform::GFx::Value result;
-			RE::Scaleform::GFx::Value args[1];
+			Scaleform::GFx::Value result;
+			Scaleform::GFx::Value args[1];
 			args[0] = static_cast<uint32_t>(idx);
 			menuObj.Invoke("CreateNodeMarker", &result, args, 1);
 			result.SetMember("sClickType", clickType.data());
@@ -252,8 +252,8 @@ namespace Menu
 			targetHandle = a_target->GetActorHandle();
 
 			VisitTargetGraph([&](Graph* g) {
-				RE::Scaleform::GFx::Value result;
-				RE::Scaleform::GFx::Value args[1];
+				Scaleform::GFx::Value result;
+				Scaleform::GFx::Value args[1];
 				auto ikMappings = g->ikManager.GetLookupMap();
 
 				for (size_t i = 0; i < g->nodes.size(); i++) {
@@ -327,7 +327,7 @@ namespace Menu
 
 		void ClearTarget() {
 			for (auto& n : nodeMarkers) {
-				RE::Scaleform::GFx::Value args[1];
+				Scaleform::GFx::Value args[1];
 				args[0] = n;
 				menuObj.Invoke("DestroyNodeMarker", nullptr, args, 1);
 			}
@@ -376,15 +376,15 @@ namespace Menu
 				RE::UI_MENU_FLAGS::kCompanionAppAllowed,
 				RE::UI_MENU_FLAGS::kUsesCursor);
 
-			depthPriority.set(RE::UI_DEPTH_PRIORITY::kHUD);
+			depthPriority = RE::UI_DEPTH_PRIORITY::kHUD;
 
 			const auto ScaleformManager = RE::BSScaleformManager::GetSingleton();
-			if (!ScaleformManager->LoadMovieEx(*this, "Interface/NAFStudioMenu.swf", "root.Menu_mc", RE::Scaleform::GFx::Movie::ScaleModeType::kShowAll)) {
+			if (!ScaleformManager->LoadMovieEx(*this, "Interface/NAFStudioMenu.swf", "root.Menu_mc", Scaleform::GFx::Movie::ScaleModeType::kShowAll)) {
 				RE::SendHUDMessage::ShowHUDMessage("Failed to load NAF Studio menu.", "UIMenuCancel", false, true);
 				return;
 			}
 
-			filterHolder = RE::msvc::make_unique<RE::BSGFxShaderFXTarget>(*uiMovie, "root.Menu_mc");
+			filterHolder = std::make_unique<RE::BSGFxShaderFXTarget>(*uiMovie, "root.Menu_mc");
 			if (filterHolder) {
 				filterHolder->CreateAndSetFiltersToHUD(RE::HUDColorTypes::kGameplayHUDColor);
 				shaderFXObjects.push_back(filterHolder.get());
@@ -405,7 +405,7 @@ namespace Menu
 			return (1.0f - screenYPos) * stageHeight;
 		}
 
-		void SetObjectPositionInWorld(RE::Scaleform::GFx::Value& obj, const BodyAnimation::NodeTransform& transform, bool isGizmo) {
+		void SetObjectPositionInWorld(Scaleform::GFx::Value& obj, const BodyAnimation::NodeTransform& transform, bool isGizmo) {
 			RE::NiPoint3 screenPos{ -100.0f, -100.0f, 0.99999f };
 			WorldPtToScreenPt3(transform.translate, screenPos);
 			screenPos.y = GetSWFYPos(screenPos.y);
@@ -429,7 +429,7 @@ namespace Menu
 					p += transform.translate;
 				});
 
-				RE::Scaleform::GFx::Value args[6];
+				Scaleform::GFx::Value args[6];
 				RE::NiPoint2 gizmoBasePos = { screenPos.x, screenPos.y };
 
 				const auto CalculateGizmoPoint = [&](const RE::NiPoint3& worldPt) {
@@ -457,7 +457,7 @@ namespace Menu
 		}
 
 		void SetScrubberPosition(double p) {
-			RE::Scaleform::GFx::Value args[1];
+			Scaleform::GFx::Value args[1];
 			args[0] = p;
 			menuObj.Invoke("SetScrubberPosition", nullptr, args, 1);
 		}
@@ -509,7 +509,7 @@ namespace Menu
 			if (idx >= nodeMarkers.size())
 				return false;
 
-			RE::Scaleform::GFx::Value val;
+			Scaleform::GFx::Value val;
 			nodeMarkers[idx].GetMember("bMarkedVisible", &val);
 			if (val.IsBoolean())
 				return val.GetBoolean();
@@ -523,7 +523,7 @@ namespace Menu
 					continue;
 
 				if (visible == true) {
-					RE::Scaleform::GFx::Value markedVis;
+					Scaleform::GFx::Value markedVis;
 					nodeMarkers[i].GetMember("bMarkedVisible", &markedVis);
 					if (markedVis.IsBoolean() && markedVis.GetBoolean() == false) {
 						nodeMarkers[i].SetMember("visible", false);
@@ -634,20 +634,20 @@ namespace Menu
 				g->creator->SetPlaying(playing);
 			});
 			if (forceUiUpdate) {
-				RE::Scaleform::GFx::Value args[1];
+				Scaleform::GFx::Value args[1];
 				args[0] = !playing;
 				menuObj.Invoke("SetPlayState", nullptr, args, 1);
 			}
 		}
 
 		void SetTimelineSize(size_t size) {
-			RE::Scaleform::GFx::Value args[1];
+			Scaleform::GFx::Value args[1];
 			args[0] = static_cast<uint32_t>(size);
 			menuObj.Invoke("SetTimelineSize", nullptr, args, 1);
 		}
 
 		void SetTimelineData(const std::vector<bool>& tlData) {
-			RE::Scaleform::GFx::Value args[1];
+			Scaleform::GFx::Value args[1];
 			uiMovie->CreateArray(&args[0]);
 			for (const bool b : tlData) {
 				args[0].PushBack(b);
@@ -669,16 +669,16 @@ namespace Menu
 				selectedFrame = std::nullopt;
 			}
 			if (selectedFrame.has_value()) {
-				RE::Scaleform::GFx::Value args[2];
+				Scaleform::GFx::Value args[2];
 				args[0] = selectedFrame.value();
 				args[1] = true;
 				menuObj.Invoke("SetKeySelected", nullptr, args, 2);
 			}
 		}
 
-		void OnClick(const std::string_view& a_type, RE::Scaleform::GFx::Value& obj) {
+		void OnClick(const std::string_view& a_type, Scaleform::GFx::Value& obj) {
 			if (a_type == "NodeMarker") {
-				RE::Scaleform::GFx::Value gIdx;
+				Scaleform::GFx::Value gIdx;
 				if (!obj.GetMember("iIndex", &gIdx) || !gIdx.IsUInt()) {
 					return;
 				}
@@ -689,7 +689,7 @@ namespace Menu
 					return;
 				}
 
-				RE::Scaleform::GFx::Value args[1];
+				Scaleform::GFx::Value args[1];
 				args[0] = true;
 				obj.Invoke("SetGizmoVisible", nullptr, args, 1);
 
@@ -791,13 +791,13 @@ namespace Menu
 
 		void OnKeySelected(uint32_t idx) {
 			if (selectedFrame.has_value()) {
-				RE::Scaleform::GFx::Value args[2];
+				Scaleform::GFx::Value args[2];
 				args[0] = selectedFrame.value();
 				args[1] = false;
 				menuObj.Invoke("SetKeySelected", nullptr, args, 2);
 			}
 			selectedFrame = idx;
-			RE::Scaleform::GFx::Value args[2];
+			Scaleform::GFx::Value args[2];
 			args[0] = idx;
 			args[1] = true;
 			menuObj.Invoke("SetKeySelected", nullptr, args, 2);
@@ -805,7 +805,7 @@ namespace Menu
 
 		void UpdateAdjustModeIcon() {
 			if (gizmoActive && gizmoIndex < nodeMarkers.size()) {
-				RE::Scaleform::GFx::Value args[1];
+				Scaleform::GFx::Value args[1];
 				args[0] = adjustMode == Creator::kRotation ? 1 : 2;
 				nodeMarkers[gizmoIndex].Invoke("SetAdjustIcon", nullptr, args, 1);
 			}
@@ -895,7 +895,7 @@ namespace Menu
 			}
 		}
 
-		virtual void HandleEvent(const RE::ButtonEvent* a_event) override
+		virtual void OnButtonEvent(const RE::ButtonEvent* a_event) override
 		{
 			if (inputEventHandlingEnabled && a_event->strUserEvent != "NextFocus") {
 				switch (a_event->GetBSButtonCode()) {
@@ -1005,7 +1005,7 @@ namespace Menu
 
 			if (gizmoActive) {
 				if (gizmoIndex <= nodeMarkers.size()) {
-					RE::Scaleform::GFx::Value args[1];
+					Scaleform::GFx::Value args[1];
 					args[0] = false;
 					nodeMarkers[gizmoIndex].Invoke("SetGizmoVisible", nullptr, args, 1);
 				}
@@ -1104,19 +1104,19 @@ namespace Menu
 
 		static RE::Setting& GetScreenHeight()
 		{
-			REL::Relocation<RE::Setting*> singleton{ REL::ID(1302430) };
+			REL::Relocation<RE::Setting*> singleton{ REL::Offset{ 0x384FC08, 0x2CDBDB8, 0x2F4D638 } };
 			return *singleton;
 		}
 
 		static RE::Setting& GetScreenWidth()
 		{
-			REL::Relocation<RE::Setting*> singleton{ REL::ID(644641) };
+			REL::Relocation<RE::Setting*> singleton{ REL::Offset{ 0x384FBF0, 0x2CDBDA0, 0x2F4D620 } };
 			return *singleton;
 		}
 
 		void GetStageSize()
 		{
-			RE::Scaleform::GFx::Value result;
+			Scaleform::GFx::Value result;
 
 			menuObj.Invoke("GetStageWidth", &result);
 			float swfWidth = static_cast<float>(result.GetNumber());
@@ -1148,13 +1148,13 @@ namespace Menu
 		};
 
 		Creator::AdjustmentMode adjustMode = Creator::kRotation;
-		F4SE::stl::enumeration<ModifierKeys, uint8_t> activeModifiers = ModifierKeys::kNone;
+		REX::TEnumSet<ModifierKeys, uint8_t> activeModifiers = ModifierKeys::kNone;
 		std::optional<uint32_t> selectedFrame = std::nullopt;
 		size_t gizmoIndex = 0;
 		bool gizmoActive = false;
 		bool movingGizmo = false;
 		bool showTargetNodes = true;
-		std::vector<RE::Scaleform::GFx::Value> nodeMarkers;
+		std::vector<Scaleform::GFx::Value> nodeMarkers;
 		std::optional<SerializableActorHandle> targetHandle = std::nullopt;
 		float gizmoMovementScale = 1.0f;
 		RE::NiPoint2 gizmoXPos;

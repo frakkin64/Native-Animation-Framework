@@ -1,5 +1,7 @@
 #pragma once
 #include <Windows.h>
+// wingdi.h defines ERROR, which collides with REX::ERROR
+#undef ERROR
 #include <stdio.h>
 #include <shared_mutex>
 #include <random>
@@ -9,6 +11,14 @@
 class Utility
 {
 public:
+	// Direct access to the underlying integer of a REX::TEnumSet (needed by cereal serialization).
+	template <class T>
+	static typename T::underlying_type& EnumRaw(T& a_set)
+	{
+		static_assert(sizeof(T) == sizeof(typename T::underlying_type));
+		return *reinterpret_cast<typename T::underlying_type*>(std::addressof(a_set));
+	}
+
 	inline static bool PCFreqAcquired = false;
 	inline static double PCFreq = 0.0;
 	inline static __int64 CounterStart = 0;
@@ -60,7 +70,7 @@ public:
 				PCFreq = double(li.QuadPart) / 1000.0;
 				PCFreqAcquired = true;
 			} else {
-				logger::warn("QueryPerformanceFrequency failed!");
+				REX::WARN("QueryPerformanceFrequency failed!");
 			}
 		}
 	}
@@ -326,11 +336,11 @@ template <class T>
 class ThreadSafeAccessor
 {
 public:
-	template <class T, class L>
+	template <class U, class L>
 	class Accessor
 	{
 	public:
-		Accessor(L _lock, T* _data) {
+		Accessor(L _lock, U* _data) {
 			lock = std::move(_lock);
 			data = _data;
 		}
@@ -340,16 +350,16 @@ public:
 			released = true;
 		}
 
-		T* operator->() {
+		U* operator->() {
 			return data;
 		}
 
-		T& operator*() {
+		U& operator*() {
 			return *data;
 		}
 	private:
 		bool released = false;
-		T* data;
+		U* data;
 		L lock;
 	};
 

@@ -4,12 +4,9 @@
 #include "F4SE/F4SE.h"
 #include "RE/Fallout.h"
 
-#include <spdlog/sinks/basic_file_sink.h>
 #pragma warning(pop)
 
 #define DLLEXPORT __declspec(dllexport)
-
-namespace logger = F4SE::log;
 
 using namespace std::literals;
 
@@ -30,11 +27,22 @@ using namespace std::literals;
 #include "cereal/types/optional.hpp"
 #include "cereal/types/atomic.hpp"
 #include "cereal/types/utility.hpp"
-#define PUGIXML_HEADER_ONLY
-#include "../extern/pugixml/src/pugixml.hpp"
+namespace cereal
+{
+	// CommonLibF4 does not provide serialization for its math types.
+	template <class Archive>
+	void serialize(Archive& ar, RE::NiPoint3& a_point)
+	{
+		ar(a_point.x, a_point.y, a_point.z);
+	}
+}
+#include <pugixml.hpp>
 #include "zstr.hpp"
 #include "nlohmann/json.hpp"
 #include "ik/ik.h"
 #include "BodyAnimation/Spline.h"
 #include "libzippp/libzippp.h"
 #include "fp16.h"
+
+// wingdi.h defines ERROR, which collides with REX::ERROR
+#undef ERROR

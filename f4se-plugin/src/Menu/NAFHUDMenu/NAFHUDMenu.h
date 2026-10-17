@@ -18,21 +18,21 @@ namespace Menu
 				RE::UI_MENU_FLAGS::kCompanionAppAllowed
 			);
 
-			depthPriority.set(RE::UI_DEPTH_PRIORITY::kBook);
+			depthPriority = RE::UI_DEPTH_PRIORITY::kBook;
 
 			const auto ScaleformManager = RE::BSScaleformManager::GetSingleton();
-			if (!ScaleformManager->LoadMovieEx(*this, "Interface/NAFHUDMenu.swf", "root.Menu_mc", RE::Scaleform::GFx::Movie::ScaleModeType::kShowAll)) {
+			if (!ScaleformManager->LoadMovieEx(*this, "Interface/NAFHUDMenu.swf", "root.Menu_mc", Scaleform::GFx::Movie::ScaleModeType::kShowAll)) {
 				RE::SendHUDMessage::ShowHUDMessage("Failed to load NAF HUD menu.", "UIMenuCancel", false, true);
 				return;
 			}
 
-			filterHolder = RE::msvc::make_unique<RE::BSGFxShaderFXTarget>(*uiMovie, "root.Menu_mc");
+			filterHolder = std::make_unique<RE::BSGFxShaderFXTarget>(*uiMovie, "root.Menu_mc");
 			if (filterHolder) {
 				filterHolder->CreateAndSetFiltersToHUD(RE::HUDColorTypes::kGameplayHUDColor);
 				shaderFXObjects.push_back(filterHolder.get());
 			}
 
-			logger::debug("NAF HUD menu loaded.");
+			REX::DEBUG("NAF HUD menu loaded.");
 		}
 
 		virtual void AdvanceMovie(float a_timeDelta, [[maybe_unused]] std::uint64_t a_time) override
@@ -64,7 +64,7 @@ namespace Menu
 			}
 		}
 
-		virtual void HandleEvent(const RE::ButtonEvent* a_event) override {
+		virtual void OnButtonEvent(const RE::ButtonEvent* a_event) override {
 			if (inputEventHandlingEnabled && a_event->strUserEvent != "NextFocus") {
 				if (a_event->QJustPressed()) {
 					switch (a_event->GetBSButtonCode()) {

@@ -24,7 +24,7 @@ namespace Scene
 		union
 		{
 			uint32_t u = 0;
-			F4SE::stl::enumeration<USER_EVENT_FLAG, uint32_t> e;
+			REX::TEnumSet<USER_EVENT_FLAG, uint32_t> e;
 		} disabledInputs;
 
 		disabledInputs.e.set(USER_EVENT_FLAG::kActivate);
@@ -249,13 +249,13 @@ namespace Scene
 
 		virtual bool Begin()
 		{
-			logger::warn("Begin() was called on the IScene base class. This shouldn't happen!");
+			REX::WARN("Begin() was called on the IScene base class. This shouldn't happen!");
 			return false;
 		};
 
 		virtual bool End()
 		{
-			logger::warn("End() was called on the IScene base class. This shouldn't happen!");
+			REX::WARN("End() was called on the IScene base class. This shouldn't happen!");
 			return false;
 		}
 

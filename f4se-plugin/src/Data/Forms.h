@@ -34,7 +34,7 @@ namespace Data
 
 		void GetFormPointers() {
 			if (!RE::TESDataHandler::GetSingleton()->LookupLoadedModByName(NAF_ESP_NAME)) {
-				logger::critical("NAF.esp is not installed/enabled. The framework will not function correctly without this. Aborting.");
+				REX::CRITICAL("NAF.esp is not installed/enabled. The framework will not function correctly without this. Aborting.");
 				MessageBoxA(nullptr, "NAF.esp is not installed/enabled, NAF will not function correctly without this. If you would like to uninstall NAF, remove NAF.dll from the F4SE/Plugins folder.", "Native Animation Framework", 0x00001000);
 				std::abort();
 			}

@@ -23,7 +23,7 @@ namespace Data
 				cereal::BinaryOutputArchive outArchive(buffer);
 				outArchive(animData);
 			} catch (std::exception ex) {
-				logger::warn("Failed to save AnimationData. Full message: {}", ex.what());
+				REX::WARN("Failed to save AnimationData. Full message: {}", ex.what());
 				return std::nullopt;
 			}
 

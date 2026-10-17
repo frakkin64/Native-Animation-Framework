@@ -33,7 +33,7 @@ case _recordId: \
 
 #define SAVE_PERSISTENT_STATE(_recordId, _ver, _recordName, _statePath) \
 if (!a_intfc->OpenRecord(_recordId, _ver)) { \
-logger::error("Failed to open co-save {} record. Some data will not be saved!", _recordName); \
+REX::ERROR("Failed to open co-save {} record. Some data will not be saved!", _recordName); \
 } \
 else \
 { \
@@ -88,7 +88,7 @@ namespace Serialization
 			Serialization::General::s_intfc = nullptr;
 		}
 
-		logger::info("Finished serialization in {:.3f}ms", Utility::GetPerformanceCounterMS());
+		REX::INFO("Finished serialization in {:.3f}ms", Utility::GetPerformanceCounterMS());
 
 		tThread->Start();
 	}
@@ -146,7 +146,7 @@ namespace Serialization
 			Serialization::General::s_intfc = nullptr;
 		}
 
-		logger::info("Finished deserialization in {:.3f}ms", Utility::GetPerformanceCounterMS());
+		REX::INFO("Finished deserialization in {:.3f}ms", Utility::GetPerformanceCounterMS());
 
 		tThread->Start();
 	}

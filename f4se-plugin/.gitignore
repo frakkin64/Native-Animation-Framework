@@ -1,1 +1,6 @@
 /build*
+/.xmake
+/compile_commands.json
+/build.log
+/vsxmake*
+/cfg.log

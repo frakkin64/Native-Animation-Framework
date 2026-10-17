@@ -124,7 +124,7 @@ namespace Menu
 			menuItems[index].label = label;
 			menuItems[index].bold = bold;
 
-			RE::Scaleform::GFx::Value args[3];
+			Scaleform::GFx::Value args[3];
 			args[0] = index;
 			args[1] = label.c_str();
 			args[2] = bold;
@@ -142,7 +142,7 @@ namespace Menu
 		}
 
 		virtual void SetPanelShown(bool shown, bool leftAlign = false) override {
-			RE::Scaleform::GFx::Value args[2];
+			Scaleform::GFx::Value args[2];
 			args[0] = shown;
 			args[1] = leftAlign;
 			menuInstance->menuObj.Invoke("SetPanelShown", nullptr, args, 2);
@@ -155,11 +155,11 @@ namespace Menu
 
 			auto movie = menuInstance->uiMovie.get();
 
-			RE::Scaleform::GFx::Value args[1];
+			Scaleform::GFx::Value args[1];
 			movie->CreateArray(&args[0]);
 
 			for (size_t i = 0; i < eles.size(); i++) {
-				RE::Scaleform::GFx::Value entry;
+				Scaleform::GFx::Value entry;
 				movie->CreateObject(&entry);
 				entry.SetMember("label", eles[i].label.c_str());
 				entry.SetMember("itemType", eles[i].itemType);
@@ -171,14 +171,14 @@ namespace Menu
 		}
 
 		virtual void ShowNotification(std::string text, float time = 5.0f) override {
-			RE::Scaleform::GFx::Value args[2];
+			Scaleform::GFx::Value args[2];
 			args[0] = text.c_str();
 			args[1] = time;
 			menuInstance->menuObj.Invoke("ShowNotification", nullptr, args, 2);
 		}
 
 		virtual void SetMenuTitle(std::string text) override {
-			RE::Scaleform::GFx::Value args[1];
+			Scaleform::GFx::Value args[1];
 			args[0] = text.c_str();
 			menuInstance->menuObj.Invoke("SetMenuTitle", nullptr, args, 1);
 		}
@@ -205,7 +205,7 @@ namespace Menu
 		}
 
 		virtual void SetTickerText(std::string text, int index) override {
-			RE::Scaleform::GFx::Value args[2];
+			Scaleform::GFx::Value args[2];
 			args[0] = text.c_str();
 			args[1] = index;
 			menuInstance->menuObj.Invoke("SetTickerText", nullptr, args, 2);
@@ -220,7 +220,7 @@ namespace Menu
 		}
 
 		virtual void SetElementText(std::string text, int index) {
-			RE::Scaleform::GFx::Value args[2];
+			Scaleform::GFx::Value args[2];
 			args[0] = text.c_str();
 			args[1] = index;
 			menuInstance->menuObj.Invoke("SetElementText", nullptr, args, 2);
@@ -257,11 +257,11 @@ namespace Menu
 
 			auto movie = menuInstance->uiMovie.get();
 
-			RE::Scaleform::GFx::Value args[2];
+			Scaleform::GFx::Value args[2];
 			movie->CreateArray(&args[0]);
 
 			for (size_t i = 0; i < menuItems.size(); i++) {
-				RE::Scaleform::GFx::Value entry;
+				Scaleform::GFx::Value entry;
 				movie->CreateObject(&entry);
 				entry.SetMember("label", menuItems[i].label.c_str());
 				entry.SetMember("bold", menuItems[i].bold);

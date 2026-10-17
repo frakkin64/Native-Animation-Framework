@@ -74,11 +74,11 @@ namespace Tasks
 			return res;
 		}
 
-		void RegisterHook(F4SE::Trampoline& trampoline)
+		void RegisterHook(REL::Trampoline& trampoline)
 		{
 			//Main::UpdateNonRenderSafeAITasks + 0x1E
 			//Call to TaskQueueInterface::ProcessQueues
-			REL::Relocation<ProcessQueues> updateCallLoc{ REL::ID(338354), 0x1E };
+			REL::Relocation<ProcessQueues> updateCallLoc{ REL::VariantID{ 338354, 2228937 }, REL::Offset{ 0x1E } };
 
 			OriginalProcessQueues = trampoline.write_call<5>(updateCallLoc.address(), &HookedGameLoop);
 		}

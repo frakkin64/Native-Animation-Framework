@@ -242,7 +242,7 @@ namespace Tasks
 		void MainRoutine()
 		{
 			std::unique_lock l{ timerLock };
-			logger::trace("Timer thread started.");
+			REX::TRACE("Timer thread started.");
 			auto lastTimestamp = std::chrono::steady_clock::now();
 			bool doWait = false;
 			double soonestExpiry = 0;
@@ -335,7 +335,7 @@ namespace Tasks
 
 			stopRequested = false;
 			threadStopped.notify_all();
-			logger::trace("Timer thread stopped.");
+			REX::TRACE("Timer thread stopped.");
 		}
 	};
 

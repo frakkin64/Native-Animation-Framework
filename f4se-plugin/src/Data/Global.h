@@ -279,7 +279,7 @@ namespace Data
 			try {
 				std::filesystem::create_directories(USERDATA_DIR);
 			} catch (std::exception ex) {
-				logger::warn("Failed to create '{}' directory. Full message: {}", USERDATA_DIR, ex.what());
+				REX::WARN("Failed to create '{}' directory. Full message: {}", USERDATA_DIR, ex.what());
 			}
 
 			std::vector<std::pair<const std::string, const std::filesystem::file_time_type>> xmlFiles;
@@ -298,7 +298,7 @@ namespace Data
 					}
 				}
 			} catch (std::exception ex) {
-				logger::warn("Failed to get contents of '{}' directory. Full message: {}", USERDATA_DIR, ex.what());
+				REX::WARN("Failed to get contents of '{}' directory. Full message: {}", USERDATA_DIR, ex.what());
 			}
 
 			Utility::StartPerformanceCounter();
@@ -307,7 +307,7 @@ namespace Data
 				AnimCache::Delete();
 				XMLCache::Delete();
 				if (verbose)
-					logger::info("Cache invalid, rebuilding (startup may take longer than usual)...");
+					REX::INFO("Cache invalid, rebuilding (startup may take longer than usual)...");
 				for (auto& p : xmlFiles) {
 					XMLCache::AddFileToCache(p.first);
 				}
@@ -317,7 +317,7 @@ namespace Data
 
 			concurrency::parallel_for_each(XMLCache::primaryCache.files.begin(), XMLCache::primaryCache.files.end(), [&](auto& iter) {
 				if (ParseXML(iter.data, iter.filename, verbose) && verbose) {
-					logger::info("Loaded {}", iter.filename);
+					REX::INFO("Loaded {}", iter.filename);
 				}
 			});
 
@@ -326,13 +326,13 @@ namespace Data
 
 			concurrency::parallel_for_each(nanimFiles.begin(), nanimFiles.end(), [&](const std::string& f) {
 				if (ParseNANIM(f, verbose) && verbose) {
-					logger::info("Loaded {}", f);
+					REX::INFO("Loaded {}", f);
 				}
 			});
 
 			if (verbose) {
 				auto performanceSeconds = Utility::GetPerformanceCounter();
-				logger::info(FMT_STRING("Finished loading files in {:.3f}s"), performanceSeconds);
+				REX::INFO("Finished loading files in {:.3f}s", performanceSeconds);
 			}
 		}
 
@@ -349,7 +349,7 @@ namespace Data
 			std::unique_lock l{ reloadLock };
 
 			auto timer = Utility::CreatePerfCounter();
-			logger::info("Rebuilding cache...");
+			REX::INFO("Rebuilding cache...");
 			if (rebuildFiles) {
 				XMLCache::Delete();
 				AnimCache::Delete();
@@ -371,7 +371,7 @@ namespace Data
 			FaceAnim::nextFileId = 0;
 			Init(false);
 			LinkDataReferences(false);
-			logger::info("Finished rebuilding in {:.0f}ms", Utility::QueryPerfCounterTime(timer));
+			REX::INFO("Finished rebuilding in {:.0f}ms", Utility::QueryPerfCounterTime(timer));
 		}
 
 		template <typename T, typename J>
@@ -458,7 +458,7 @@ namespace Data
 
 			if (!result) {
 				if (verbose)
-					logger::warn("Failed to parse {}, message: {} at character {}", fName, result.description(), std::to_string(result.offset));
+					REX::WARN("Failed to parse {}, message: {} at character {}", fName, result.description(), std::to_string(result.offset));
 				return false;
 			}
 
@@ -523,7 +523,7 @@ namespace Data
 			});
 
 			patchApplied = true;
-			logger::info("Patched {} HeadParts.", count);
+			REX::INFO("Patched {} HeadParts.", count.load());
 		}
 
 		static void LinkDataReferences(bool verbose = true)
@@ -591,7 +591,7 @@ namespace Data
 					if (s.behaviorRequiresConvert) {
 						if (!skeletonProjectMap.contains(s.rootBehavior)) {
 							if (verbose)
-								logger::warn("Animation '{}' contains actor with invalid skeleton '{}', discarding.", a.id, s.rootBehavior);
+								REX::WARN("Animation '{}' contains actor with invalid skeleton '{}', discarding.", a.id, s.rootBehavior);
 							pendingDeletes.push_back(pair.first);
 						} else {
 							s.rootBehavior = skeletonProjectMap[s.rootBehavior];
@@ -614,7 +614,7 @@ namespace Data
 				auto baseAnim = p.second->GetBaseAnimation();
 				if (baseAnim == nullptr) {
 					if (verbose)
-						logger::warn("Position '{}' does not point to a valid animation, discarding.", p.second->id);
+						REX::WARN("Position '{}' does not point to a valid animation, discarding.", p.second->id);
 					pendingDeletes.push_back(p.second->id);
 				} else {
 					p.second->Merge(*baseAnim);
@@ -667,8 +667,10 @@ namespace Data
 
 		RE::NiPointer<RE::NiNode> skeleton1;
 		RE::NiPointer<RE::NiNode> skeleton2;
-		RE::BSModelDB::Demand(actorBase->race->skeletonModel[0].model.data(), skeleton1);
-		RE::BSModelDB::Demand(actorBase->race->skeletonModel[1].model.data(), skeleton2);
+		RE::BSModelDB::DBTraits::ArgsType modelArgs{};
+		modelArgs.loadTextures = 1;
+		RE::BSModelDB::Demand(actorBase->race->skeletonModel[0].model.data(), &skeleton1, modelArgs);
+		RE::BSModelDB::Demand(actorBase->race->skeletonModel[1].model.data(), &skeleton2, modelArgs);
 
 		result = std::make_shared<GraphInfo>();
 		result->id = id;

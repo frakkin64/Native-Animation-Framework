@@ -82,7 +82,7 @@ namespace Data
 			try {
 				zstr::ifstream file(cachePath, std::ios::binary);
 				if (file.fail() || !file.good()) {
-					logger::warn("Failed to open {}", cachePath);
+					REX::WARN("Failed to open {}", cachePath);
 					cacheValid = false;
 					return false;
 				}
@@ -90,7 +90,7 @@ namespace Data
 				cereal::BinaryInputArchive archive(file);
 				archive(primaryCache);
 			} catch (const std::exception& e) {
-				logger::warn("Failed to load cache. Full Message: {}", e.what());
+				REX::WARN("Failed to load cache. Full Message: {}", e.what());
 				cacheValid = false;
 				primaryCache = Cache();
 				return false;
@@ -103,7 +103,7 @@ namespace Data
 			std::unique_lock l{ lock };
 			std::ifstream file(filename);
 			if (!file.is_open()) {
-				logger::warn("Failed to open {}", cachePath);
+				REX::WARN("Failed to open {}", cachePath);
 				return false;
 			}
 
@@ -131,14 +131,14 @@ namespace Data
 				try {
 					zstr::ofstream file(cachePath, std::ios::binary, Z_BEST_SPEED);
 					if (file.fail() || !file.good()) {
-						logger::warn("Failed to open {}", cachePath);
+						REX::WARN("Failed to open {}", cachePath);
 						return;
 					}
 				
 					cereal::BinaryOutputArchive archive(file);
 					archive(primaryCache);
 				} catch (const std::exception& e) {
-					logger::warn("Failed to save cache. Full Message: {}", e.what());
+					REX::WARN("Failed to save cache. Full Message: {}", e.what());
 				}
 			}
 
